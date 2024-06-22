@@ -24,7 +24,7 @@ contract FundMe {
     address private immutable i_owner;
     address[] private s_funders;
     mapping(address => uint256) private s_addressToAmountFunded;
-    AggregatorV3Interface private s_priceFeed;
+    AggregatorV3Interface private s_pricefeed;
 
     // Events (we have none!)
 
@@ -44,15 +44,15 @@ contract FundMe {
     //// internal
     //// private
     //// view / pure
+// address priceFeed
 
-    constructor(address priceFeed) {
-        s_priceFeed = AggregatorV3Interface(priceFeed);
+    constructor(address chainAddress) {
         i_owner = msg.sender;
+        s_pricefeed = AggregatorV3Interface(chainAddress);
     }
 
-    /// @notice Funds our contract based on the ETH/USD price
     function fund() public payable {
-        require(msg.value.getConversionRate(s_priceFeed) >= MINIMUM_USD, "You need to spend more ETH!");
+        require(msg.value.getConversionRate(s_pricefeed) >= MINIMUM_USD, "You need to spend more ETH!");
         // require(PriceConverter.getConversionRate(msg.value) >= MINIMUM_USD, "You need to spend more ETH!");
         s_addressToAmountFunded[msg.sender] += msg.value;
         s_funders.push(msg.sender);
@@ -68,7 +68,9 @@ contract FundMe {
         // payable(msg.sender).transfer(address(this).balance);
         (bool success,) = i_owner.call{value: address(this).balance}("");
         require(success);
+        
     }
+
 
     function cheaperWithdraw() public onlyOwner {
         address[] memory funders = s_funders;
@@ -83,21 +85,12 @@ contract FundMe {
         require(success);
     }
 
-    /**
-     * Getter Functions
-     */
-
-    /**
-     * @notice Gets the amount that an address has funded
-     *  @param fundingAddress the address of the funder
-     *  @return the amount funded
-     */
     function getAddressToAmountFunded(address fundingAddress) public view returns (uint256) {
         return s_addressToAmountFunded[fundingAddress];
     }
 
     function getVersion() public view returns (uint256) {
-        return s_priceFeed.version();
+        return s_pricefeed.version();
     }
 
     function getFunder(uint256 index) public view returns (address) {
@@ -109,6 +102,10 @@ contract FundMe {
     }
 
     function getPriceFeed() public view returns (AggregatorV3Interface) {
-        return s_priceFeed;
+        return s_pricefeed;
+    }
+
+    function returnBalance() public view returns(uint256){
+        return address(this).balance;
     }
 }
