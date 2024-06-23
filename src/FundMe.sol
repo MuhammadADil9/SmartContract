@@ -1,61 +1,67 @@
 // SPDX-License-Identifier: MIT
-// 1. Pragma
 pragma solidity ^0.8.19;
-// 2. Imports
 
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 import {PriceConverter} from "./PriceConverter.sol";
 
-// 3. Interfaces, Libraries, Contracts
+// Error
 error FundMe__NotOwner();
+error TargetAchieved();
+// Address will map to the struct
 
-/**
- * @title A sample Funding Contract
- * @author Patrick Collins
- * @notice This contract is for creating a sample funding contract
- * @dev This implements price feeds as our library
- */
 contract FundMe {
-    // Type Declarations
+    // Extending UINT256 functionalities
     using PriceConverter for uint256;
 
-    // State variables
-    uint256 public constant MINIMUM_USD = 5 * 10 ** 18;
+    
+    uint256 public constant MINIMUM_USD = 5;
     address private immutable i_owner;
     address[] private s_funders;
-    mapping(address => uint256) private s_addressToAmountFunded;
+    
+    struct FundersDetails {
+        uint256 FundId;
+        string Name;
+        uint256 Amount;
+    }
+    
+    mapping(address => FundersDetails) private s_addressToAmountFunded;
     AggregatorV3Interface private s_pricefeed;
+    int256 private counter = 1;
+    uint256 private Target = 50e18;
+    
 
-    // Events (we have none!)
-
-    // Modifiers
+    // Modifiers For verifying the owner
     modifier onlyOwner() {
         // require(msg.sender == i_owner);
         if (msg.sender != i_owner) revert FundMe__NotOwner();
         _;
     }
 
-    // Functions Order:
-    //// constructor
-    //// receive
-    //// fallback
-    //// external
-    //// public
-    //// internal
-    //// private
-    //// view / pure
-// address priceFeed
+    modifier target(){
+        if(address(this).balance>=Target){
+            revert TargetAchieved();
+        }
+        _;
+    }
+
 
     constructor(address chainAddress) {
         i_owner = msg.sender;
         s_pricefeed = AggregatorV3Interface(chainAddress);
     }
 
-    function fund() public payable {
+    function fund(string memory name) public payable TargetAchieved  {
         require(msg.value.getConversionRate(s_pricefeed) >= MINIMUM_USD, "You need to spend more ETH!");
-        // require(PriceConverter.getConversionRate(msg.value) >= MINIMUM_USD, "You need to spend more ETH!");
-        s_addressToAmountFunded[msg.sender] += msg.value;
+        
+        FundersDetails memory funder =  FundersDetails({
+            FundId : counter,
+            Name : name,
+            Amount : msg.value
+         });
+        
+        s_addressToAmountFunded[msg.sender] = funder;
         s_funders.push(msg.sender);
+        counter++;
     }
 
     function withdraw() public onlyOwner {
