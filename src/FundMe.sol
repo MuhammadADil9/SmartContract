@@ -6,7 +6,7 @@ import {PriceConverter} from "./PriceConverter.sol";
 
 // Error
 error NotOwner();
-error TargetAchieved();
+error TargetAchieved(uint256 ContractBalance,uint256 SenderAmount);
 // Address will map to the struct
 
 contract FundMe {
@@ -28,7 +28,7 @@ contract FundMe {
     
     mapping(address => FundersDetails) private s_addressFunders;
     AggregatorV3Interface private s_pricefeed;
-    int256 private counter = 1;
+    uint256 private counter = 0;
     uint256 private Target = 50e18;
     
 
@@ -45,7 +45,10 @@ contract FundMe {
 // Limitation :- Contract may receive funds more than 50 ETH
     modifier target(){
         if(address(this).balance>=Target){
-            revert TargetAchieved();
+            revert TargetAchieved({
+                ContractBalance : address(this).balance,
+                SenderAmount : msg.value
+            });
         }
         _;
     }
@@ -66,7 +69,7 @@ contract FundMe {
         require(msg.value.getConversionRate(s_pricefeed) >= MINIMUM_USD.getConversionRate(s_pricefeed), "You need to spend more ETH!");
         
         FundersDetails memory funder =  FundersDetails({
-            FundId : uint256(counter),
+            FundId : counter,
             Name : name,
             Amount : msg.value
          });
@@ -93,7 +96,7 @@ contract FundMe {
         // payable(msg.sender).transfer(address(this).balance);
         (bool success,) = i_owner.call{value: address(this).balance}("");
         require(success);
-        counter= 1;
+        counter= 0;
     }
 
 
@@ -114,7 +117,7 @@ contract FundMe {
         // payable(msg.sender).transfer(address(this).balance);
         (bool success,) = i_owner.call{value: address(this).balance}("");
         require(success);
-        counter = 1;
+        counter = 0;
         }
 
 
@@ -139,9 +142,9 @@ contract FundMe {
 
 
 
-function getRandomNumber() public view returns (uint256) {
-    return uint256(keccak256(abi.encodePacked(blockhash(block.number - 1), msg.sender, block.timestamp)));
-}
+        function getRandomNumber() public view returns (uint256) {
+            return uint256(keccak256(abi.encodePacked(blockhash(block.number - 1), msg.sender, block.timestamp)));
+        }
 
 
     function getVersion() public view returns (uint256) {
@@ -164,6 +167,13 @@ function getRandomNumber() public view returns (uint256) {
     function getOwner() public view returns (address) {
         return i_owner;
     }
+
+    function getOwnerBalance() public view returns (uint256) {
+        uint256 OB = msg.sender.balance;
+        return OB;
+    }
+
+    
 
     function getPriceFeed() public view returns (AggregatorV3Interface) {
         return s_pricefeed;
