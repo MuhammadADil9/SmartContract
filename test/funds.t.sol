@@ -163,10 +163,49 @@ contract FundTest is Test{
     }
 
 
-    function 
+    function testHighestContribution() public  {
+        address a = vm.addr(2);
+        address b = vm.addr(3);
+        address c = vm.addr(4);
+        address d = vm.addr(5);
 
+        vm.deal(a,6e18);
+        vm.deal(b,15e18);
+        vm.deal(c,20e18);
+        vm.deal(d,9e18);
 
+        vm.prank(a);
+        funds.fund{value:6e18}("Arslan");
+
+        vm.prank(b);
+        funds.fund{value:15e18}("Jhanzeb");
+
+        vm.prank(c);
+        funds.fund{value:20e18}("Bilal");
+
+        vm.prank(d);
+        funds.fund{value:8e18}("Daniyal");
+    
+        (string memory name,uint256 amount) = funds.HighestContribution();
+        
+        assertEq(name,"Bilal");
+        assertEq(amount,20e18);
+        
+    }
+
+    function testgetOwnerBalance() public {
+        uint256 bal = funds.returnBalance();
+        assertEq(bal,0);
+    }
+
+    function testVersion() public {
+        uint256 version = funds.getVersion();
+        assertEq(version,4);
+
+    }
 }
+
+
 
 
 

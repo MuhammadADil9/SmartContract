@@ -5,6 +5,7 @@ import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interf
 import {PriceConverter} from "./PriceConverter.sol";
 
 // Error
+error AmountNotFullYet();
 error NotOwner();
 error TargetAchieved(uint256 ContractBalance,uint256 SenderAmount);
 // Address will map to the struct
@@ -52,6 +53,16 @@ contract FundMe {
         }
         _;
     }
+
+// Modifier for running the highest contribution function
+
+
+ modifier M_HighestContribution{
+    if(address(this).balance <= 45e18){
+        revert AmountNotFullYet();
+    }
+    _;
+ }
 
 
     constructor(address chainAddress) {
@@ -124,7 +135,7 @@ contract FundMe {
 
 // Finding the person with highest amount of funding
 
-        function HighestContribution () public view returns(string memory,uint256) {
+        function HighestContribution () M_HighestContribution public view returns(string memory,uint256) {
             address[] memory funders = s_funders;
             uint256 L_amount = 0;
             string memory FunderWithMostContribution = "";
@@ -138,12 +149,6 @@ contract FundMe {
                }
             }
            return (FunderWithMostContribution,L_amount);
-        }
-
-
-
-        function getRandomNumber() public view returns (uint256) {
-            return uint256(keccak256(abi.encodePacked(blockhash(block.number - 1), msg.sender, block.timestamp)));
         }
 
 
