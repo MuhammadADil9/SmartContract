@@ -30,7 +30,7 @@ contract FundTest is Test{
     }
     
     // Checks the right owner
-    function testTrueOwner() public view returns(address){
+    function testTrueOwner() public view{
         address owner = funds.getOwner();
         assertEq(owner,msg.sender);
     }
@@ -105,15 +105,13 @@ contract FundTest is Test{
         
         vm.prank(dummyUser);
         funds.fund{value:25e18}("arslan");
-        (string memory fName, uint256 fAmount ) =  funds.getFunderDetail(0);
-        string memory SenderName = "arslan";
+        (string memory fName,) =  funds.getFunderDetail(0);
         vm.expectRevert();
-        assertEq(SenderName,"Bilal");
+        assertEq(fName,"Bilal");
     }
 
     function testWithdraw() public {
         uint256 i_cBalance = funds.returnBalance();
-        uint256 i_oBalance = funds.getOwnerBalance();
 
         vm.prank(dummyUser);
         funds.fund{value:25e18}("arslan");
@@ -124,7 +122,6 @@ contract FundTest is Test{
         funds.withdraw();
 
         uint256 f_cBalance = funds.returnBalance();
-        uint256 f_oBalance = funds.getOwnerBalance();
 
         // console.log(f_oBalance);
         console.log(f_cBalance);
@@ -139,7 +136,6 @@ contract FundTest is Test{
     
     function testCheapWithdraw() public {
         uint256 i_cBalance = funds.returnBalance();
-        uint256 i_oBalance = funds.getOwnerBalance();
 
         vm.prank(dummyUser);
         funds.fund{value:25e18}("arslan");
@@ -150,7 +146,6 @@ contract FundTest is Test{
         funds.cheaperWithdraw();
 
         uint256 f_cBalance = funds.returnBalance();
-        uint256 f_oBalance = funds.getOwnerBalance();
 
         // console.log(f_oBalance);
         console.log(f_cBalance);
@@ -193,12 +188,12 @@ contract FundTest is Test{
         
     }
 
-    function testgetOwnerBalance() public {
+    function testgetOwnerBalance() public view {
         uint256 bal = funds.returnBalance();
         assertEq(bal,0);
     }
 
-    function testVersion() public {
+    function testVersion() public view {
         uint256 version = funds.getVersion();
         assertEq(version,4);
 

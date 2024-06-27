@@ -112,10 +112,10 @@ contract FundMe {
 
 
     function cheaperWithdraw() public onlyOwner {
-        address[] memory funders = s_funders;
+        address[] memory funders_copy = s_funders;
         // mappings can't be in memory, sorry!
-        for (uint256 funderIndex = 0; funderIndex < funders.length; funderIndex++) {
-            address funder = funders[funderIndex];
+        for (uint256 funderIndex = 0; funderIndex < funders_copy.length; funderIndex++) {
+            address funder = funders_copy[funderIndex];
             s_addressFunders[funder] = FundersDetails({
             FundId : 0,
             Name : "",
@@ -136,12 +136,12 @@ contract FundMe {
 // Finding the person with highest amount of funding
 
         function HighestContribution () M_HighestContribution public view returns(string memory,uint256) {
-            address[] memory funders = s_funders;
+            address[] memory funders_copy = s_funders;
             uint256 L_amount = 0;
             string memory FunderWithMostContribution = "";
 
-            for(uint256 counter; counter< funders.length;counter++){
-               address user =  funders[counter];
+            for(uint256 counter_a; counter_a< funders_copy.length;counter_a++){
+               address user =  funders_copy[counter];
                FundersDetails memory temp_Struct = s_addressFunders[user];  
                if(L_amount <= temp_Struct.Amount){
                 FunderWithMostContribution = temp_Struct.Name; 
